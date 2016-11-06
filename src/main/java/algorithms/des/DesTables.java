@@ -7,11 +7,7 @@ public class DesTables {
 
     }
 
-    private DesTables INSTANCE = new DesTables();
-
-    public DesTables getInstance() {
-        return INSTANCE;
-    }
+    public static final DesTables INSTANCE = new DesTables();
 
     private static final int[] INITIAL_PERMUTATION_TABLE = {
             58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4,
