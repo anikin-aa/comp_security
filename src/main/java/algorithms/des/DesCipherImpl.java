@@ -1,6 +1,7 @@
 package algorithms.des;
 
 import algorithms.CipherInterface;
+import algorithms.CipherMode;
 
 import java.nio.ByteBuffer;
 
@@ -43,6 +44,45 @@ public class DesCipherImpl implements CipherInterface {
         this.additionalKeys = new byte[numberOfAdditionalKeys][];
         int[] keyShifts = DES_TABLES.getKeyShifts();
 
+        for (int i = 0; i < numberOfAdditionalKeys; i++) {
+            firstKeyPart = rotateLeftBits(firstKeyPart, halfKeySize, keyShifts[i]);
+            secondKeyPart = rotateLeftBits(secondKeyPart, halfKeySize, keyShifts[i]);
+            byte[] concatenation = concatenateBits(
+                    firstKeyPart,
+                    halfKeySize,
+                    secondKeyPart,
+                    halfKeySize
+            );
+            this.additionalKeys[i] = selectBitsByTable(concatenation, DES_TABLES.getCompressionPermutationTable());
+        }
+    }
+
+    private byte[] concatenateBits(byte firstPart[], int lengthFirstPart, byte[] secondPart, int lengthSecondPart) {
+        int resSize = (lengthFirstPart + lengthSecondPart - 1) / 8 + 1;
+        byte[] output = new byte[resSize];
+        int k = 0;
+        for (int i = 0; i < lengthFirstPart; i++) {
+            int value = getBit(firstPart, i);
+            setBit(output, k, value);
+            k++;
+        }
+        for (int i = 0; i < lengthSecondPart; i++) {
+            int value = getBit(secondPart, i);
+            setBit(output, k, value);
+            k++;
+        }
+        return output;
+    }
+
+    // rotate bytes to left with step
+    private byte[] rotateLeftBits(byte[] source, int length, int step) {
+        int numberOfBytes = (length - 1) / 8 + 1;
+        byte[] output = new byte[numberOfBytes];
+        for (int i = 0; i < length; i++) {
+            int value = getBit(source, (i + step) % length);
+            setBit(output, i, value);
+        }
+        return output;
     }
 
     private byte[] selectBitsByTable(byte[] inputBytes, int[] table) {
@@ -81,11 +121,57 @@ public class DesCipherImpl implements CipherInterface {
         destination[bytePosition] = newByte;
     }
 
+    private byte[][] splitMessage(byte[] bytes2split) {
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        int commonCapacity = bytes2split.length / 8;
+        byte[][] split = new byte[commonCapacity][];
+        int j = 0;
+        for (byte bytte : bytes2split) {
+            buffer.put(bytte);
+            if (!buffer.hasRemaining()) {
+                split[j] = buffer.array();
+                j++;
+                buffer = ByteBuffer.allocate(8);
+            }
+        }
+        return split;
+    }
+
+    private String normalizeMessage(String text) {
+        StringBuilder copy = new StringBuilder();
+        copy.append(text);
+        while (copy.length() % 8 != 0) {
+            copy.append((char) 0x0f);
+        }
+        return copy.toString();
+    }
+
+    private byte[] mainMethod(byte[] text, CipherMode mode) {
+        byte[] result = new byte[5];
+        if (mode.equals(CipherMode.DECRYPT)) {
+
+        } else {
+
+        }
+        return result;
+    }
+
     public String decrypt(String textToDecrypt) {
+        byte[][] splittedMessage = splitMessage(textToDecrypt.getBytes());
+        byte[][] resultStorage = new byte[splittedMessage.length][];
+        for (int i = 0; i < splittedMessage.length; i++) {
+            resultStorage[i] = mainMethod(splittedMessage[i], CipherMode.ENCRYPT);
+        }
         return "";
     }
 
     public String encrypt(String textToEncrypt) {
+        byte[][] splittedMessage = splitMessage(normalizeMessage(textToEncrypt).getBytes());
+        byte[][] resultStorage = new byte[splittedMessage.length][];
+        for (int i = 0; i < splittedMessage.length; i++) {
+            resultStorage[i] = mainMethod(splittedMessage[i], CipherMode.ENCRYPT);
+        }
+        // TODO add methods for getting string from bytes
         return "";
     }
 }
