@@ -146,21 +146,84 @@ public class DesCipherImpl implements CipherInterface {
         return copy.toString();
     }
 
-    private byte[] mainMethod(byte[] text, CipherMode mode) {
+    private byte[] mainMethod(byte[] text, CipherMode mode) throws Exception {
+        text = selectBitsByTable(text, DES_TABLES.getInitialPermutationTable());
+        int blockSize = DES_TABLES.getInitialPermutationTableLength();
+        byte[] leftPart = selectBits(text, 0, blockSize / 2);
+        byte[] rightPart = selectBits(text, blockSize / 2, blockSize / 2);
+        int numberOfAdditionalKeys = additionalKeys.length;
         byte[] result = new byte[5];
-        if (mode.equals(CipherMode.DECRYPT)) {
-
-        } else {
-
+        for (int i = 0; i < numberOfAdditionalKeys; i++) {
+            // tmp storage for right part
+            byte[] tmpStorage = rightPart;
+            rightPart = selectBitsByTable(rightPart, DES_TABLES.getExpansionPermutationTable());
+            if (mode.equals(CipherMode.DECRYPT)) {
+                // xor operation between right part and keys from the beginning
+                rightPart = XOR(rightPart, additionalKeys[i]);
+            } else {
+                // xor operation between right part and keys from the end
+                rightPart = XOR(rightPart, additionalKeys[numberOfAdditionalKeys - i - 1]);
+            }
+            rightPart = substitution6to4(rightPart);
+            rightPart = selectBitsByTable(rightPart, DES_TABLES.getDirectPermutationTable());
+            rightPart = XOR(leftPart, rightPart);
+            leftPart = tmpStorage;
         }
+        // TODO add method for concatenate bits
+        // byte [] result = concatenatebits(
         return result;
+    }
+
+    // substitution six to four bits
+    private byte[] substitution6to4(byte[] input) throws Exception {
+        input = expandBits(input, 6);
+        byte[] output = new byte[input.length / 2];
+        int leftHalfByte = 0;
+        for (int i = 0; i < input.length; i++) {
+            byte byteValue = input[i];
+            int right = 2 * (byteValue >> 7 & 0x0001) + (byteValue >> 2 & 0x0001);
+            int center = byteValue >> 3 & 0x000F;
+            int halfByte = DES_TABLES.getSubstitutionTable(i + 1)[right << 4 | center];
+            if (i % 2 == 0) {
+                leftHalfByte = halfByte;
+            } else {
+                output[i / 2] = (byte) (leftHalfByte << 4 | halfByte);
+            }
+        }
+        return output;
+    }
+
+    private byte[] expandBits(byte[] source, int length) {
+        int numberOfBytes = (8 * source.length - 1) / length + 1;
+        byte[] output = new byte[numberOfBytes];
+        for (int i = 0; i < numberOfBytes; i++) {
+            for (int j = 0; j < length; j++) {
+                int value = getBit(source, length * i + j);
+                setBit(output, 8 * i + j, value);
+            }
+        }
+        return output;
+    }
+
+
+    // ok here some bad code, for cases where length of arrays not the same it will not work!
+    private byte[] XOR(byte[] firstPart, byte[] secondPart) {
+        byte[] output = new byte[firstPart.length];
+        for (int i = 0; i < firstPart.length; i++) {
+            output[i] = (byte) (firstPart[i] ^ secondPart[i]);
+        }
+        return output;
     }
 
     public String decrypt(String textToDecrypt) {
         byte[][] splittedMessage = splitMessage(textToDecrypt.getBytes());
         byte[][] resultStorage = new byte[splittedMessage.length][];
         for (int i = 0; i < splittedMessage.length; i++) {
-            resultStorage[i] = mainMethod(splittedMessage[i], CipherMode.ENCRYPT);
+            try {
+                resultStorage[i] = mainMethod(splittedMessage[i], CipherMode.ENCRYPT);
+            } catch (Exception e) {
+                System.out.println("something went wrong" + e);
+            }
         }
         return "";
     }
@@ -169,7 +232,11 @@ public class DesCipherImpl implements CipherInterface {
         byte[][] splittedMessage = splitMessage(normalizeMessage(textToEncrypt).getBytes());
         byte[][] resultStorage = new byte[splittedMessage.length][];
         for (int i = 0; i < splittedMessage.length; i++) {
-            resultStorage[i] = mainMethod(splittedMessage[i], CipherMode.ENCRYPT);
+            try {
+                resultStorage[i] = mainMethod(splittedMessage[i], CipherMode.ENCRYPT);
+            } catch (Exception e) {
+                System.out.println("Something went wrong: " + e);
+            }
         }
         // TODO add methods for getting string from bytes
         return "";
