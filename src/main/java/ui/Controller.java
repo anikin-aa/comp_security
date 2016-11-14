@@ -6,6 +6,7 @@ import algorithms.des.DesCipherImpl;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import org.apache.commons.lang3.StringUtils;
 
 public class Controller {
     @FXML
@@ -32,16 +33,26 @@ public class Controller {
 
     @FXML
     void decryptDes() throws Exception {
-        validateInputs();
-        String textToDecrypt = des_text.getText();
-        key = des_key.getText();
-        CipherInterface des = new DesCipherImpl(key);
-        String decryptedText = des.decrypt(textToDecrypt);
-        des_text_area.setText(decryptedText);
+        if (validateInputs(des_key, des_text)) {
+            String textToDecrypt = des_text.getText();
+            key = des_key.getText();
+            CipherInterface des = new DesCipherImpl(key);
+            String decryptedText = des.decrypt(textToDecrypt);
+            des_text_area.setText(decryptedText);
+        }
     }
 
-    // some validation of inputs (check for emptiness, etc.)
-    private void validateInputs() {
-
+    // some validation of inputs (check for emptiness)
+    private boolean validateInputs(TextField ... fields) {
+        boolean flag = false;
+        for (TextField fieldToCheck : fields) {
+            if (StringUtils.isEmpty(fieldToCheck.getText())) {
+                fieldToCheck.getStyleClass().add("error");
+                flag = true;
+            } else {
+                fieldToCheck.getStyleClass().removeAll("error");
+            }
+        }
+        return flag;
     }
 }

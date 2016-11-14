@@ -152,12 +152,11 @@ public class DesCipherImpl implements CipherInterface {
         byte[] leftPart = selectBits(text, 0, blockSize / 2);
         byte[] rightPart = selectBits(text, blockSize / 2, blockSize / 2);
         int numberOfAdditionalKeys = additionalKeys.length;
-        byte[] result = new byte[5];
         for (int i = 0; i < numberOfAdditionalKeys; i++) {
             // tmp storage for right part
             byte[] tmpStorage = rightPart;
             rightPart = selectBitsByTable(rightPart, DES_TABLES.getExpansionPermutationTable());
-            if (mode.equals(CipherMode.DECRYPT)) {
+            if (mode.equals(CipherMode.ENCRYPT)) {
                 // xor operation between right part and keys from the beginning
                 rightPart = XOR(rightPart, additionalKeys[i]);
             } else {
@@ -169,9 +168,9 @@ public class DesCipherImpl implements CipherInterface {
             rightPart = XOR(leftPart, rightPart);
             leftPart = tmpStorage;
         }
-        // TODO add method for concatenate bits
-        // byte [] result = concatenatebits(
-        return result;
+        byte[] blockResult = concatenateBits(rightPart, blockSize / 2, leftPart, blockSize / 2);
+        blockResult = selectBitsByTable(blockResult, DES_TABLES.getFinalPermutationTable());
+        return blockResult;
     }
 
     // substitution six to four bits
@@ -215,6 +214,15 @@ public class DesCipherImpl implements CipherInterface {
         return output;
     }
 
+    private String cutOff(String s) {
+        StringBuilder returnSource = new StringBuilder();
+        for (char element : s.toCharArray()) {
+            if (element != (char) 0x0f)
+                returnSource.append(element);
+        }
+        return returnSource.toString();
+    }
+
     public String decrypt(String textToDecrypt) {
         byte[][] splittedMessage = splitMessage(textToDecrypt.getBytes());
         byte[][] resultStorage = new byte[splittedMessage.length][];
@@ -225,7 +233,7 @@ public class DesCipherImpl implements CipherInterface {
                 System.out.println("something went wrong" + e);
             }
         }
-        return "";
+        return cutOff(new String(gatherMessage(resultStorage)));
     }
 
     public String encrypt(String textToEncrypt) {
@@ -238,7 +246,16 @@ public class DesCipherImpl implements CipherInterface {
                 System.out.println("Something went wrong: " + e);
             }
         }
-        // TODO add methods for getting string from bytes
-        return "";
+        return new String(gatherMessage(resultStorage));
+    }
+
+    private byte[] gatherMessage(byte[][] input) {
+        ByteBuffer buffer = ByteBuffer.allocate(input.length * 8);
+        for (int i = 0; i < input.length; i++) {
+            for (int j = 0; j < input[i].length; j++) {
+                buffer.put(input[i][j]);
+            }
+        }
+        return buffer.array();
     }
 }
