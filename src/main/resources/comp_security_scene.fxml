@@ -8,7 +8,6 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.91" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.Controller">
    <children>
@@ -27,16 +26,12 @@
                               </AnchorPane>
                             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                  <children>
-                                    <HBox layoutX="125.0" layoutY="18.0" prefHeight="181.0" prefWidth="598.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                       <children>
-                                          <Button alignment="CENTER" depthTest="DISABLE" mnemonicParsing="false" onAction="#encryptDes" prefHeight="25.0" prefWidth="137.0" text="зашифровать текст" />
-                                          <Button mnemonicParsing="false" onAction="#decryptDes" prefHeight="25.0" prefWidth="137.0" text="расшифровать текст" />
-                                          <TextField fx:id="des_key" />
-                                          <Label prefHeight="17.0" prefWidth="92.0" text="Ключ" />
-                                          <TextField fx:id="des_text" />
-                                          <Label prefHeight="17.0" prefWidth="92.0" text="Текст" />
-                                       </children>
-                                    </HBox>
+                                    <Button alignment="CENTER" depthTest="DISABLE" layoutX="42.0" layoutY="39.0" mnemonicParsing="false" onAction="#encryptDes" prefHeight="25.0" prefWidth="137.0" text="зашифровать текст" />
+                                    <Button layoutX="42.0" layoutY="78.0" mnemonicParsing="false" onAction="#decryptDes" prefHeight="25.0" prefWidth="137.0" text="расшифровать текст" />
+                                    <TextField fx:id="des_key" layoutX="205.0" layoutY="39.0" />
+                                    <Label layoutX="363.0" layoutY="43.0" prefHeight="17.0" prefWidth="92.0" text="Ключ" />
+                                    <TextField fx:id="des_text" layoutX="205.0" layoutY="78.0" />
+                                    <Label layoutX="363.0" layoutY="82.0" prefHeight="17.0" prefWidth="92.0" text="Текст" />
                                  </children></AnchorPane>
                           </items>
                         </SplitPane>
