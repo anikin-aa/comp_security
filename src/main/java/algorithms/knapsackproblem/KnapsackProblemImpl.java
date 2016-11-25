@@ -7,8 +7,11 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class KnapsackProblemImpl implements CipherInterface {
+    Logger log = Logger.getLogger("knapsackLog");
 
     private Integer N = 31;
 
@@ -18,14 +21,17 @@ public class KnapsackProblemImpl implements CipherInterface {
     public KnapsackProblemImpl(String inputSequence) {
         this.publicKey = parseInputSequence(inputSequence);
         this.privateKey = generatePrivateKeyByPublic();
-        publicKey.forEach(x -> System.out.print(x + " "));
-        System.out.println();
-        privateKey.forEach(x -> System.out.print(x + " "));
+    }
+
+    public List<Integer> getPublicKey() {
+        return publicKey;
     }
 
     private List<Integer> generatePrivateKeyByPublic() {
         List<Integer> res = new ArrayList<>();
         Integer m = publicKey.stream().reduce(0, (x, y) -> x + y) + 1;
+//        N = 588;
+//        Integer m = 881;
         publicKey.forEach(val -> res.add((val * N) % m));
         return res;
     }
@@ -49,6 +55,7 @@ public class KnapsackProblemImpl implements CipherInterface {
 
     public String encrypt(String textToEncrypt) throws Exception {
         String stringInBits = getBitsArrayFromString(textToEncrypt);
+        log.log(Level.INFO, "stringInBits: " + stringInBits);
         List<Integer> encryptedList = new ArrayList<>();
         if (stringInBits.length() % privateKey.size() == 0) {
             List<char[]> listOfCharsArrays = splitBitsToArraysList(stringInBits);
